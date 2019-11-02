@@ -6,7 +6,7 @@ class Doc {
         this.id = id.toString()
         this.members = []
         this.sockets = []
-
+        this.indexCount = 0
         this.create(connection , callback)
     }
     
@@ -33,6 +33,7 @@ class Doc {
     }
 
     addSocket( token , connection , user , callback , closeBack){
+        this.indexCount++
         const socket = new Socket( token , connection )
     
         socket.on("close",() => {
@@ -60,11 +61,11 @@ class Doc {
                 console.log("on message:",data)
             }
         })
-
+        user.iid = this.indexCount
         this.sockets.forEach(socket => {
             socket.sendMessage("join" , user)
         })
-        user.iid = this.members.length + 1
+       
         this.members.push(user)
         this.sockets.push(socket)
 
