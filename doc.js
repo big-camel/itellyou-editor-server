@@ -60,6 +60,12 @@ class Doc {
             if(data.action){
                 console.log("on message:",data)
             }
+            if(data.action === "broadcast"){
+                console.log(data.sender)
+                this.sockets.forEach(socket => {
+                    socket.sendMessage("broadcast" , data.data)
+                })
+            }
         })
         user.iid = this.indexCount
         this.sockets.forEach(socket => {
