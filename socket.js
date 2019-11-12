@@ -1,8 +1,9 @@
 class Socket {
-    constructor( token , connection ) {
+    constructor( token , member , connection ) {
         if(!connection)
             throw "需要一个WebSocket连接"
         this.token = token
+        this.member = member
         this.connection = connection
     }
 

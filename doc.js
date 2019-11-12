@@ -32,9 +32,9 @@ class Doc {
         return this.sockets
     }
 
-    addSocket( token , connection , user , callback , closeBack){
+    addSocket( token , connection , member , callback , closeBack){
         this.indexCount++
-        const socket = new Socket( token , connection )
+        const socket = new Socket( token , member , connection )
     
         socket.on("close",() => {
             const socketIndex = this.sockets.findIndex(socket => socket.token === token)
@@ -42,7 +42,7 @@ class Doc {
                 this.sockets.splice(socketIndex,1)
             }
 
-            const memberIndex = this.members.findIndex(member => member.uuid === user.uuid)
+            const memberIndex = this.members.findIndex(m => m.uuid === member.uuid)
             if(memberIndex > -1){
                 const levaeMember = this.members[memberIndex]
                 this.members.splice(memberIndex,1)
@@ -67,17 +67,17 @@ class Doc {
                 })
             }
         })
-        user.iid = this.indexCount
+        member.iid = this.indexCount
         this.sockets.forEach(socket => {
-            socket.sendMessage("join" , user)
+            socket.sendMessage("join" , member)
         })
        
-        this.members.push(user)
+        this.members.push(member)
         this.sockets.push(socket)
 
         socket.sendMessage("members",this.members)
 
-        socket.sendMessage("ready" , user , callback)
+        socket.sendMessage("ready" , member , callback)
     }
 }
 

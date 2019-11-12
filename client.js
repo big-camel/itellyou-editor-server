@@ -66,11 +66,12 @@ class Client {
                 doc = new Doc(id , this.sharedbConnection)
                 this.docs.push(doc)
             }else{
-                if(doc.members.find(m => m.id === member.id)){
-                    conection.close()
-                    console.error(`用户${member.name}在文档${id}中已经有一个连接了`)
-                    return
-                }
+                // 关闭此用户此文档之前未关闭的链接
+                doc.sockets.forEach(socket => {
+                    if(socket.member.id === member.id){
+                        socket.connection.close()
+                    }
+                });
             }
             
             doc.addSocket( token , conection , member , () => {
