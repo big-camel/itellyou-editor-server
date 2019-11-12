@@ -1,21 +1,19 @@
 const http = require('http');
 const express = require('express')
-const proxy = require('http-proxy-middleware')
 const WebSocket = require('ws')
 const bodyParser = require('body-parser')
 const Client = require('./client')
-
 
 startServer()
 
 function startServer() {
     // Create a web server to serve files and listen to WebSocket connections
     const app = express()
-    app.use("/api",proxy({
-        target:"http://localhost:8000",
-        changeOrigoin:true
-    }))
+   
     app.use(bodyParser.json({limit: '10mb'}))
+    app.use(bodyParser.urlencoded({            
+        extended: false
+    }))
 
     const server = http.createServer(app)
 

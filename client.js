@@ -3,6 +3,7 @@ const querystring = require("querystring")
 const requestPromise = require('request-promise')
 const ShareDB = require('sharedb')
 const WebSocketJSONStream = require('@teamwork/websocket-json-stream')
+const uuidv3 = require('uuid/v3')
 
 const Doc = require('./doc')
 
@@ -22,12 +23,13 @@ class Client {
         return querystring.parse(url.parse(request.url).query)
     }
 
-    verify(token,callback){
+    verify(id,token,callback){
         return requestPromise({
-            uri:"http://localhost:8080/api/collabs",
+            uri:`http://api.itellyou.com/${id}/collab`,
             method:"POST",
             json:true,
             body:{
+                id,
                 token
             }
         }).then(res => {
@@ -44,23 +46,38 @@ class Client {
             conection.close()
             return
         }
-        this.verify(token , res => {
+        this.verify(id , token , res => {
             if(!res.result){
                 conection.close()
                 console.error("客户端验证出错了",res.message)
                 return
             }
+
+            const { user } = res.data
+            const member = {
+                id:user.user_id,
+                key:user.user_name,
+                name:user.nickname,
+                uuid:uuidv3(id.concat("/" + user.user_id),uuidv3.URL)
+            }
+
             let doc = this.getDoc(id.toString())
             if(!doc){
                 doc = new Doc(id , this.sharedbConnection)
                 this.docs.push(doc)
+            }else{
+                if(doc.members.find(m => m.id === member.id)){
+                    conection.close()
+                    console.error(`用户${member.name}在文档${id}中已经有一个连接了`)
+                    return
+                }
             }
-
-            doc.addSocket( token , conection , res.data.user , () => {
+            
+            doc.addSocket( token , conection , member , () => {
                 const stream = new WebSocketJSONStream(conection)
                 this.sharedb.listen(stream)
-            } , () => {
-                const docIndex = this.docs.findIndex(d => d.id === doc.id)
+            } , doc_id => {
+                const docIndex = this.docs.findIndex(d => d.id === doc_id)
                 if(docIndex > -1){
                     this.docs.splice(docIndex,1)
                 }
