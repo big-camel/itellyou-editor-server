@@ -57,11 +57,7 @@ class Doc {
 
         socket.on("message",message => {
             const data = JSON.parse(message)
-            if(data.action){
-                console.log("on message:",data)
-            }
             if(data.action === "broadcast"){
-                console.log(data.sender)
                 this.sockets.forEach(socket => {
                     socket.sendMessage("broadcast" , data.data)
                 })
