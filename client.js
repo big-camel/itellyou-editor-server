@@ -23,13 +23,12 @@ class Client {
         return querystring.parse(url.parse(request.url).query)
     }
 
-    verify(id,token,callback){
+    verify(key,token,callback){
         return requestPromise({
-            uri:`http://api.itellyou.com/${id}/collab`,
+            uri:`http://api.itellyou.com/${key}/collab`,
             method:"POST",
             json:true,
             body:{
-                id,
                 token
             }
         }).then(res => {
@@ -41,12 +40,12 @@ class Client {
 
     addDoc(conection,request){
         const params = this.getParams(request)
-        const { id , token } = params
-        if(!id || !token){
+        const { key , token } = params
+        if(!key || !token){
             conection.close()
             return
         }
-        this.verify(id , token , res => {
+        this.verify(key , token , res => {
             if(!res.result){
                 conection.close()
                 console.error("客户端验证出错了",res.message)
@@ -55,15 +54,15 @@ class Client {
 
             const { user } = res.data
             const member = {
-                id:user.user_id,
-                key:user.user_name,
-                name:user.nickname,
-                uuid:uuidv3(id.concat("/" + user.user_id),uuidv3.URL)
+                id:user.id,
+                key:user.login || user.mobile || user.email || user.id,
+                name:user.name,
+                uuid:uuidv3(key.concat("/" + user.id),uuidv3.URL)
             }
 
-            let doc = this.getDoc(id.toString())
+            let doc = this.getDoc(key)
             if(!doc){
-                doc = new Doc(id , this.sharedbConnection)
+                doc = new Doc(key , this.sharedbConnection)
                 this.docs.push(doc)
             }else{
                 // 关闭此用户此文档之前未关闭的链接
