@@ -25,7 +25,7 @@ class Client {
 
     verify(key,token,callback){
         return requestPromise({
-            uri:`http://api.itellyou.com/${key}/collab`,
+            uri:`http://localhost:8082/${key}/collab`,
             method:"POST",
             json:true,
             body:{
@@ -45,18 +45,22 @@ class Client {
             conection.close()
             return
         }
+        // 根据 key ，token 请求后端 api 验证客户端连接信息是否安全可靠
         this.verify(key , token , res => {
             if(!res.result){
                 conection.close()
                 console.error("客户端验证出错了",res.message)
                 return
             }
-
+            
             const { user } = res.data
+            //设置用户信息 id , key , name , uuid 为固定参数
             const member = {
                 id:user.id,
                 key:user.login || user.mobile || user.email || user.id,
                 name:user.name,
+                avatar:user.avatar,
+                path:user.path,
                 uuid:uuidv3(key.concat("/" + user.id),uuidv3.URL)
             }
 
@@ -74,9 +78,12 @@ class Client {
             }
             
             doc.addSocket( token , conection , member , () => {
+                // 建立协作 socket 连接
                 const stream = new WebSocketJSONStream(conection)
+                // 监听消息
                 this.sharedb.listen(stream)
             } , doc_id => {
+                // 没有编辑用户了，移除文档
                 const docIndex = this.docs.findIndex(d => d.id === doc_id)
                 if(docIndex > -1){
                     this.docs.splice(docIndex,1)

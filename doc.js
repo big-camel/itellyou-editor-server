@@ -12,6 +12,7 @@ class Doc {
     
     create(connection,callback){
         callback = callback || function(){}
+        console.log(this.id)
         const doc = connection.get('itellyou', this.id)
         doc.fetch(function(err) {
             if (err) throw err
