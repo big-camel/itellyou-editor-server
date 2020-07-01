@@ -25,7 +25,7 @@ class Client {
 
     verify(key,token,callback){
         return requestPromise({
-            uri:`http://localhost:8082/${key}/collab`,
+            uri:`http://localhost:8000/api/${key}/collab`,
             method:"POST",
             json:true,
             body:{
